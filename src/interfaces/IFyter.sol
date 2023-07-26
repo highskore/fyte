@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+/// @title The interface for {Fyter}
+
+interface IFyter {
+    /*//////////////////////////////////////////////////////////////
+                                 ERRORS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Emitted when a token hasn't been minted.
+    error TokenUnminted();
+
+    /*//////////////////////////////////////////////////////////////
+                               FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Mint a Fyter token.
+    function mint(uint256 _id) external;
+
+    /*//////////////////////////////////////////////////////////////
+                             METADATA
+    //////////////////////////////////////////////////////////////*/
+
+    /// @return The contract URI for this contract.
+    function contractURI() external view returns (string memory);
+}
