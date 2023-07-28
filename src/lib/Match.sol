@@ -10,29 +10,40 @@ import { Moves } from "./Moves.sol";
 import { Direction, Action } from "../types/Types.sol";
 
 /// @title Match logic library for Fyte
+/// @title Match logic library for Fyte
 /// @author highskore
 /// @notice This library contains the logic for playing Fyte matches.
 /// @dev A fighter's match data is designed to fit into a single uint256, with the following bitpacking:
+
 /// ---------------------------
 /// 0-159: address of the fyter
 /// ---------------------------
-/// 160-167: hp (0-255)
+/// 160-164: hp
+/// (0-31)
 /// ---------------------------
-/// 168-174: round (0-255)
+/// 165-171: round
+/// (0-127)
 /// ---------------------------
-/// 175-184: x-coordinate
-/// 185-194: y-coordinate
+/// 172-176: x-coordinate
+/// (up to 31 positions)
+/// 177-180: y-coordinate
+/// (up to 15 positions)
 /// ---------------------------
-/// 195-198: direction
-/// 199-202: action
+/// 181-184: direction
+/// (0-15)
+/// 185-188: action
+/// (0-15)
 /// ---------------------------
-/// 203-251: hitbox
-/// ---------------------------
-/// 252: stunned flag
+/// 189-252: hitbox
+/// 8x8 = 64 bits
 /// ---------------------------
 /// 253: combo flag
 /// ---------------------------
-/// 254-255: turn flag (0 - me commit, 1 - opponent commit, 2 - me reveal, 3 - opponent reveal)
+/// 254-255: turn flag
+/// 0 - me commit,
+/// 1 - opponent commit,
+/// 2 - me reveal,
+/// 3 - opponent reveal
 /// ---------------------------
 
 library Match {
@@ -43,32 +54,29 @@ library Match {
     using Match for uint256;
 
     /*//////////////////////////////////////////////////////////////
-                                CONSTANTS
+                            CONSTANTS
     //////////////////////////////////////////////////////////////*/
 
     /// @notice location of the hp byte
-    uint256 internal constant HP_BITS = 0xFF << 160;
+    uint256 internal constant HP_BITS = 0x1F << 160;
 
     /// @notice location of the round count bits
-    uint256 internal constant ROUND_BITS = 0xFF << 168;
+    uint256 internal constant ROUND_BITS = 0x7F << 165;
 
     /// @notice location of the x-coordinate bytes
-    uint256 internal constant X_COORD_BITS = 0x3FF << 175;
+    uint256 internal constant X_COORD_BITS = 0x1F << 172;
 
     /// @notice location of the y-coordinate bytes
-    uint256 internal constant Y_COORD_BITS = 0x3FF << 185;
+    uint256 internal constant Y_COORD_BITS = 0xF << 177;
 
     /// @notice location of the direction bits (4 bits)
-    uint256 internal constant DIRECTION_BITS = 0xF << 195;
+    uint256 internal constant DIRECTION_BITS = 0xF << 181;
 
     /// @notice location of the action bits (4 bits)
-    uint256 internal constant ACTION_BITS = 0xF << 199;
+    uint256 internal constant ACTION_BITS = 0xF << 185;
 
     /// @notice location of the hitbox bits
-    uint256 internal constant HITBOX_BITS = (1 << 49) - 1 << 203;
-
-    /// @notice location of the stunned flag bit
-    uint256 internal constant STUNNED_FLAG = 1 << 252;
+    uint256 internal constant HITBOX_BITS = ((1 << 64) - 1) << 189;
 
     /// @notice location of the combo bit
     uint256 internal constant COMBO_BIT = 1 << 253;
@@ -104,14 +112,14 @@ library Match {
     /// @param _matchData The player's match data.
     /// @return matchData The updated match data.
     function initializeRed(uint256 _matchData) internal pure returns (uint256 matchData) {
-        // Set the player's hp to 255.
-        matchData = _matchData.setHp(255);
-        // Set the player's match round count to 255.
-        matchData = matchData.setRound(255);
+        // Set the player's hp to 31.
+        matchData = _matchData.setHp(31);
+        // Set the player's match round count to 127.
+        matchData = matchData.setRound(127);
         // Set the player's x-coordinate to 0.
-        matchData = matchData.setX(252);
+        matchData = matchData.setX(0);
         // Set the player's y-coordinate to 0.
-        matchData = matchData.setY(4);
+        matchData = matchData.setY(0);
         // Set the player's direction to neutral.
         matchData = matchData.setDirection(Direction.NONE);
         // Set the player's action to idle.
@@ -119,8 +127,6 @@ library Match {
         // Set the player's hitbox
         (uint256 grid,) = Moves.getSpriteGrid(Direction.NONE, Action.NONE);
         matchData = matchData.setHitbox(grid);
-        // Set the player's stunned flag to false.
-        matchData = matchData.setStunned(0);
         // Set the player's combo flag to false.
         matchData = matchData.setCombo(0);
         // Set the turn flag to 0.
@@ -131,12 +137,12 @@ library Match {
     /// @param _matchData The player's match data.
     /// @return matchData The updated match data.
     function initializeBlue(uint256 _matchData) internal pure returns (uint256 matchData) {
-        // Set the player's hp to 255.
-        matchData = _matchData.setHp(255);
-        // Set the player's match round count to 255.
-        matchData = matchData.setRound(255);
+        // Set the player's hp to 31.
+        matchData = _matchData.setHp(31);
+        // Set the player's match round count to 127..
+        matchData = matchData.setRound(127);
         // Set the player's x-coordinate to 0.
-        matchData = matchData.setX(764);
+        matchData = matchData.setX(31);
         // Set the player's y-coordinate to 0.
         matchData = matchData.setY(4);
         // Set the player's direction to neutral.
@@ -146,8 +152,6 @@ library Match {
         // Set the player's hitbox
         (uint256 grid,) = Moves.getSpriteGrid(Direction.NONE, Action.NONE);
         matchData = matchData.setHitbox(grid);
-        // Set the player's stunned flag to false.
-        matchData = matchData.setStunned(0);
         // Set the player's combo flag to false.
         matchData = matchData.setCombo(0);
         // Set the turn flag to 3.
@@ -205,7 +209,7 @@ library Match {
     /// @param _round The round of the match
     /// @return matchData The updated match data.
     function setRound(uint256 _matchData, uint8 _round) internal pure returns (uint256 matchData) {
-        matchData = (_matchData & ~ROUND_BITS) | (uint256(_round) << 168);
+        matchData = (_matchData & ~ROUND_BITS) | (uint256(_round) << 165);
     }
 
     /// @notice Set the x-coordinate of the fyter.
@@ -213,7 +217,7 @@ library Match {
     /// @param _x The x-coordinate of the fyter.
     /// @return matchData The updated match data.
     function setX(uint256 _matchData, uint256 _x) internal pure returns (uint256 matchData) {
-        matchData = (_matchData & ~X_COORD_BITS) | (_x << 175);
+        matchData = (_matchData & ~X_COORD_BITS) | (_x << 172);
     }
 
     /// @notice Set the y-coordinate of the fyter.
@@ -221,7 +225,7 @@ library Match {
     /// @param _y The y-coordinate of the fyter.
     /// @return matchData The updated match data.
     function setY(uint256 _matchData, uint256 _y) internal pure returns (uint256 matchData) {
-        matchData = (_matchData & ~Y_COORD_BITS) | (_y << 185);
+        matchData = (_matchData & ~Y_COORD_BITS) | (_y << 177);
     }
 
     /// @notice Set the direction of the fyter move
@@ -229,7 +233,7 @@ library Match {
     /// @param _direction The direction of the fyter move.
     /// @return matchData The updated match data.
     function setDirection(uint256 _matchData, Direction _direction) internal pure returns (uint256 matchData) {
-        matchData = (_matchData & ~DIRECTION_BITS) | (uint256(_direction) << 195);
+        matchData = (_matchData & ~DIRECTION_BITS) | (uint256(_direction) << 181);
     }
 
     /// @notice Set the action of the fyter move
@@ -237,7 +241,7 @@ library Match {
     /// @param _action The action of the fyter
     /// @return matchData The updated match data.
     function setAction(uint256 _matchData, Action _action) internal pure returns (uint256 matchData) {
-        matchData = (_matchData & ~ACTION_BITS) | (uint256(_action) << 199);
+        matchData = (_matchData & ~ACTION_BITS) | (uint256(_action) << 185);
     }
 
     /// @notice Set the hitbox of the fyter.
@@ -245,15 +249,7 @@ library Match {
     /// @param _hitbox The hitbox of the fyter.
     /// @return matchData The updated match data.
     function setHitbox(uint256 _matchData, uint256 _hitbox) internal pure returns (uint256 matchData) {
-        matchData = (_matchData & ~HITBOX_BITS) | (_hitbox << 203);
-    }
-
-    /// @notice Set the stunned flag of the fyter.
-    /// @param _matchData The match data.
-    /// @param _stunned The stunned flag of the fyter.
-    /// @return matchData The updated match data.
-    function setStunned(uint256 _matchData, uint256 _stunned) internal pure returns (uint256 matchData) {
-        matchData = (_matchData & ~STUNNED_FLAG) | (_stunned << 252);
+        matchData = (_matchData & ~HITBOX_BITS) | (_hitbox << 189);
     }
 
     /// @notice Set the combo flag of the fyter.
@@ -287,7 +283,7 @@ library Match {
     /// @param _matchData The match data.
     /// @return round The round of the match.
     function getRound(uint256 _matchData) internal pure returns (uint8 round) {
-        round = uint8((_matchData & ROUND_BITS) >> 168);
+        round = uint8((_matchData & ROUND_BITS) >> 165);
     }
 
     /// @notice Get the x and y coordinates of the fyter.
@@ -295,44 +291,36 @@ library Match {
     /// @return x The x coordinate of the fyter.
     /// @return y The y coordinate of the fyter.
     function getCoordinates(uint256 _matchData) internal pure returns (uint256 x, uint256 y) {
-        x = (_matchData & X_COORD_BITS) >> 175;
-        y = (_matchData & Y_COORD_BITS) >> 185;
+        x = (_matchData & X_COORD_BITS) >> 172;
+        y = (_matchData & Y_COORD_BITS) >> 177;
     }
 
     /// @notice Get the direction of the fyter move
     /// @param data The match data.
     /// @return direction The direction of the fyter move.
     function getDirection(uint256 data) internal pure returns (Direction direction) {
-        direction = Direction((data & DIRECTION_BITS) >> 195);
+        direction = Direction((data & DIRECTION_BITS) >> 181);
     }
 
     /// @notice Get the action of the fyter move
     /// @param data The match data.
     /// @return action The action of the fyter
     function getAction(uint256 data) internal pure returns (Action action) {
-        action = Action((data & ACTION_BITS) >> 199);
+        action = Action((data & ACTION_BITS) >> 185);
     }
 
     /// @notice Get the hitbox of the fyter.
     /// @param _matchData The match data.
     /// @return hitbox The hitbox of the fyter.
     function getHitbox(uint256 _matchData) internal pure returns (uint256 hitbox) {
-        hitbox = (_matchData & HITBOX_BITS) >> 203;
+        hitbox = (_matchData & HITBOX_BITS) >> 189;
     }
 
-    /// @notice Get the stunned flag of the fyter.
-    /// @param _matchData The match data.
-    /// @return stunned The stunned flag of the fyter.
-    function getStunned(uint256 _matchData) internal pure returns (uint256 stunned) {
-        stunned = (_matchData & STUNNED_FLAG) >> 252;
-    }
-
-    // The combo bit should be extracted as a boolean, not as a number. I'll modify that function accordingly:
     /// @notice Check if the fyter is in a combo state.
     /// @param _matchData The match data.
     /// @return combo Whether the fyter is in a combo or not.
-    function isInCombo(uint256 _matchData) internal pure returns (bool combo) {
-        combo = (_matchData & COMBO_BIT) != 0;
+    function getCombo(uint256 _matchData) internal pure returns (uint256 combo) {
+        combo = (_matchData & COMBO_BIT) >> 253;
     }
 
     /// @notice Get the turn flag of the fyter.

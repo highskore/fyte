@@ -141,7 +141,7 @@ contract Fyte is IFyte, Owned {
         // Check if it's the blue player's turn to reveal and if the message sender is the blue player
         uint256 bluePlayerData = blueCorner[_fyteID];
         // Check if the round count is even or odd to determine if it's the blue player's turn to reveal
-        uint256 round = bluePlayerData.getRound() % 2;
+        uint256 round = bluePlayerData.getRound() & 0x1;
         if (
             player != address(uint160(bluePlayerData)) || (round == 0 && bluePlayerData.getTurn() != 2)
                 || (round == 1 && bluePlayerData.getTurn() != 3)
@@ -171,7 +171,7 @@ contract Fyte is IFyte, Owned {
         // Check if it's the red player's turn to reveal and if the message sender is the red player
         uint256 redPlayerData = redCorner[_fyteID];
         // Check if the round count is even or odd to determine if it's the red player's turn to reveal
-        uint256 round = redPlayerData.getRound() % 2;
+        uint256 round = redPlayerData.getRound() & 0x01;
         if (
             player != address(uint160(redPlayerData)) || (round == 1 && redPlayerData.getTurn() != 2)
                 || (round == 0 && redPlayerData.getTurn() != 3)
