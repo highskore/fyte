@@ -12,8 +12,17 @@ interface IFyte {
                                EVENTS
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Emitted when a match is created.
+    event MatchCreated(uint256 fyteID, address red, address blue);
+
+    /// @notice Emitted when a match is liquidated.
+    event MatchLiquidated(uint256 fyteID, address winner, uint256 amount);
+
     /// @notice Emitted when a turn is committed.
     event TurnCommited(uint256 fyteID, address player, bytes32 commitment);
+
+    /// @notice Emitted when a turn is revealed.
+    event TurnRevealed(uint256 fyteID, address player, Direction direction, Action action);
 
     /*//////////////////////////////////////////////////////////////
                                ERRORS

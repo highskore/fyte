@@ -10,11 +10,9 @@ import { Moves } from "./Moves.sol";
 import { Direction, Action } from "../types/Types.sol";
 
 /// @title Match logic library for Fyte
-/// @title Match logic library for Fyte
 /// @author highskore
 /// @notice This library contains the logic for playing Fyte matches.
 /// @dev A fighter's match data is designed to fit into a single uint256, with the following bitpacking:
-
 /// ---------------------------
 /// 0-159: address of the fyter
 /// ---------------------------

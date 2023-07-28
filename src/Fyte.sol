@@ -162,6 +162,8 @@ contract Fyte is IFyte, Owned {
             delete blueCommitment[_fyteID];
             delete redCommitment[_fyteID];
         }
+
+        emit TurnRevealed(_fyteID, player, _direction, _action);
     }
 
     ///@inheritdoc IFyte
@@ -192,6 +194,7 @@ contract Fyte is IFyte, Owned {
             delete blueCommitment[_fyteID];
             delete redCommitment[_fyteID];
         }
+        emit TurnRevealed(_fyteID, player, _direction, _action);
     }
 
     /*//////////////////////////////////////////////////////////////
