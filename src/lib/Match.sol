@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+// Libraries
+
 import { Moves } from "./Moves.sol";
+
+// Types
+
+import { Direction, Action } from "../types/Types.sol";
 
 /// @title Match logic library for Fyte
 /// @author highskore
@@ -107,18 +113,18 @@ library Match {
         // Set the player's y-coordinate to 0.
         matchData = matchData.setY(4);
         // Set the player's direction to neutral.
-        matchData = matchData.setDirection(Moves.Direction.NONE);
+        matchData = matchData.setDirection(Direction.NONE);
         // Set the player's action to idle.
-        matchData = matchData.setAction(Moves.Action.NONE);
+        matchData = matchData.setAction(Action.NONE);
         // Set the player's hitbox
-        (uint256 grid,) = Moves.getSpriteGrid(Moves.Direction.NONE, Moves.Action.NONE);
+        (uint256 grid,) = Moves.getSpriteGrid(Direction.NONE, Action.NONE);
         matchData = matchData.setHitbox(grid);
         // Set the player's stunned flag to false.
         matchData = matchData.setStunned(0);
         // Set the player's combo flag to false.
         matchData = matchData.setCombo(0);
         // Set the turn flag to 0.
-        matchData = matchData.setTurn(2);
+        matchData = matchData.setTurn(0);
     }
 
     /// @notice Initializes the match data for the blue player.
@@ -134,18 +140,18 @@ library Match {
         // Set the player's y-coordinate to 0.
         matchData = matchData.setY(4);
         // Set the player's direction to neutral.
-        matchData = matchData.setDirection(Moves.Direction.NONE);
+        matchData = matchData.setDirection(Direction.NONE);
         // Set the player's action to idle.
-        matchData = matchData.setAction(Moves.Action.NONE);
+        matchData = matchData.setAction(Action.NONE);
         // Set the player's hitbox
-        (uint256 grid,) = Moves.getSpriteGrid(Moves.Direction.NONE, Moves.Action.NONE);
+        (uint256 grid,) = Moves.getSpriteGrid(Direction.NONE, Action.NONE);
         matchData = matchData.setHitbox(grid);
         // Set the player's stunned flag to false.
         matchData = matchData.setStunned(0);
         // Set the player's combo flag to false.
         matchData = matchData.setCombo(0);
         // Set the turn flag to 3.
-        matchData = matchData.setTurn(2);
+        matchData = matchData.setTurn(1);
     }
 
     /// @notice Play a move in a match.
@@ -161,30 +167,18 @@ library Match {
         pure
         returns (uint256 currentFytherMatchData, uint256 opponentFytherMatchData)
     {
-        // Check if it's the player's turn.
-        if (_currentFytherMatchData.getTurn() == 0) revert NotYourTurn();
         // Check if the game is over.
         if (isOver(_currentFytherMatchData, _opponentFytherMatchData)) revert GameOver();
 
         // Retrieve the move direction and action for the current player from the match data.
-        Moves.Direction currentFigtherDirection = _currentFytherMatchData.getDirection();
-        Moves.Action currentFigtherAction = _currentFytherMatchData.getAction();
 
-        // Retrieve the move direction and action for the opponent player from the match data.
-        Moves.Direction opponentFigtherDirection = _opponentFytherMatchData.getDirection();
-        Moves.Action opponentFigtherAction = _opponentFytherMatchData.getAction();
+        // Retrieve the move direction and action for the opponent player from the match data.;
 
         // Get the move hitbox and damage for the current player's move.
-        (uint256 currentFigtherHitboxGrid, uint256 damage) =
-            Moves.getSpriteGrid(currentFigtherDirection, currentFigtherAction);
 
         // Get the move hitbox and damage for the opponent player's move.
-        (uint256 opponentFigtherHitboxGrid, uint256 opponentDamage) =
-            Moves.getSpriteGrid(opponentFigtherDirection, opponentFigtherAction);
 
         // Calculate moveSpeed as the inverse of the damage for each player using bitwise NOT.
-        uint256 currentFigtherMoveSpeed = ~damage;
-        uint256 opponentFigtherMoveSpeed = ~opponentDamage;
 
         // Check if the move hitbox from the current player can hit the opponent player.
 
@@ -234,7 +228,7 @@ library Match {
     /// @param _matchData The match data.
     /// @param _direction The direction of the fyter move.
     /// @return matchData The updated match data.
-    function setDirection(uint256 _matchData, Moves.Direction _direction) internal pure returns (uint256 matchData) {
+    function setDirection(uint256 _matchData, Direction _direction) internal pure returns (uint256 matchData) {
         matchData = (_matchData & ~DIRECTION_BITS) | (uint256(_direction) << 195);
     }
 
@@ -242,7 +236,7 @@ library Match {
     /// @param _matchData The match data.
     /// @param _action The action of the fyter
     /// @return matchData The updated match data.
-    function setAction(uint256 _matchData, Moves.Action _action) internal pure returns (uint256 matchData) {
+    function setAction(uint256 _matchData, Action _action) internal pure returns (uint256 matchData) {
         matchData = (_matchData & ~ACTION_BITS) | (uint256(_action) << 199);
     }
 
@@ -308,15 +302,15 @@ library Match {
     /// @notice Get the direction of the fyter move
     /// @param data The match data.
     /// @return direction The direction of the fyter move.
-    function getDirection(uint256 data) internal pure returns (Moves.Direction direction) {
-        direction = Moves.Direction((data & DIRECTION_BITS) >> 195);
+    function getDirection(uint256 data) internal pure returns (Direction direction) {
+        direction = Direction((data & DIRECTION_BITS) >> 195);
     }
 
     /// @notice Get the action of the fyter move
     /// @param data The match data.
     /// @return action The action of the fyter
-    function getAction(uint256 data) internal pure returns (Moves.Action action) {
-        action = Moves.Action((data & ACTION_BITS) >> 199);
+    function getAction(uint256 data) internal pure returns (Action action) {
+        action = Action((data & ACTION_BITS) >> 199);
     }
 
     /// @notice Get the hitbox of the fyter.
