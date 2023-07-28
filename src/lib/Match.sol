@@ -12,9 +12,7 @@ import { Moves } from "./Moves.sol";
 /// ---------------------------
 /// 160-167: hp (0-255)
 /// ---------------------------
-/// 168-173: energy (0-127)
-/// ---------------------------
-/// 174: facing flag (0 - left, 1 - right)
+/// 168-174: round (0-255)
 /// ---------------------------
 /// 175-184: x-coordinate
 /// 185-194: y-coordinate
@@ -28,7 +26,7 @@ import { Moves } from "./Moves.sol";
 /// ---------------------------
 /// 253: combo flag
 /// ---------------------------
-/// 254-255: turn flag (0 - my turn, 1 - opponent turn, 2 - my commi, 3 - opponent commit)
+/// 254-255: turn flag (0 - me commit, 1 - opponent commit, 2 - me reveal, 3 - opponent reveal)
 /// ---------------------------
 
 library Match {
@@ -45,11 +43,8 @@ library Match {
     /// @notice location of the hp byte
     uint256 internal constant HP_BITS = 0xFF << 160;
 
-    /// @notice location of the energy bits (7 bits)
-    uint256 internal constant ENERGY_BITS = 0x3F << 168;
-
-    /// @notice location of the facing flag bit
-    uint256 internal constant FACING_FLAG = 1 << 174;
+    /// @notice location of the round count bits
+    uint256 internal constant ROUND_BITS = 0xFF << 168;
 
     /// @notice location of the x-coordinate bytes
     uint256 internal constant X_COORD_BITS = 0x3FF << 175;
@@ -105,10 +100,8 @@ library Match {
     function initializeRed(uint256 _matchData) internal pure returns (uint256 matchData) {
         // Set the player's hp to 255.
         matchData = _matchData.setHp(255);
-        // Set the player's energy to 63.
-        matchData = matchData.setEnergy(63);
-        // Set the player's facing to right.
-        matchData = matchData.setFacing(1);
+        // Set the player's match round count to 255.
+        matchData = matchData.setRound(255);
         // Set the player's x-coordinate to 0.
         matchData = matchData.setX(252);
         // Set the player's y-coordinate to 0.
@@ -134,10 +127,8 @@ library Match {
     function initializeBlue(uint256 _matchData) internal pure returns (uint256 matchData) {
         // Set the player's hp to 255.
         matchData = _matchData.setHp(255);
-        // Set the player's energy to 63.
-        matchData = matchData.setEnergy(63);
-        // Set the player's facing to left.
-        matchData = matchData.setFacing(0);
+        // Set the player's match round count to 255.
+        matchData = matchData.setRound(255);
         // Set the player's x-coordinate to 0.
         matchData = matchData.setX(764);
         // Set the player's y-coordinate to 0.
@@ -154,7 +145,7 @@ library Match {
         // Set the player's combo flag to false.
         matchData = matchData.setCombo(0);
         // Set the turn flag to 3.
-        matchData = matchData.setTurn(3);
+        matchData = matchData.setTurn(2);
     }
 
     /// @notice Play a move in a match.
@@ -163,7 +154,6 @@ library Match {
     /// @return currentFytherMatchData The updated current fighter match data.
     /// @return opponentFytherMatchData The updated opponent fighter match data.
     function playMove(
-        uint256 _move,
         uint256 _currentFytherMatchData,
         uint256 _opponentFytherMatchData
     )
@@ -177,8 +167,8 @@ library Match {
         if (isOver(_currentFytherMatchData, _opponentFytherMatchData)) revert GameOver();
 
         // Retrieve the move direction and action for the current player from the match data.
-        Moves.Direction currentFigtherDirection = _move.getDirection();
-        Moves.Action currentFigtherAction = _move.getAction();
+        Moves.Direction currentFigtherDirection = _currentFytherMatchData.getDirection();
+        Moves.Action currentFigtherAction = _currentFytherMatchData.getAction();
 
         // Retrieve the move direction and action for the opponent player from the match data.
         Moves.Direction opponentFigtherDirection = _opponentFytherMatchData.getDirection();
@@ -216,20 +206,12 @@ library Match {
         matchData = (_matchData & ~HP_BITS) | (_hp << 160);
     }
 
-    /// @notice Set the energy of the fyter.
+    /// @notice Set the round of the match.
     /// @param _matchData The match data.
-    /// @param _energy The energy of the fyter.
+    /// @param _round The round of the match
     /// @return matchData The updated match data.
-    function setEnergy(uint256 _matchData, uint8 _energy) internal pure returns (uint256 matchData) {
-        matchData = (_matchData & ~ENERGY_BITS) | (uint256(_energy) << 168);
-    }
-
-    /// @notice Set the facing direction of the fyter.
-    /// @param _matchData The match data.
-    /// @param _facing The facing direction of the fyter (0 for left, 1 for right).
-    /// @return matchData The updated match data.
-    function setFacing(uint256 _matchData, uint8 _facing) internal pure returns (uint256 matchData) {
-        matchData = (_matchData & ~FACING_FLAG) | (uint256(_facing) << 174);
+    function setRound(uint256 _matchData, uint8 _round) internal pure returns (uint256 matchData) {
+        matchData = (_matchData & ~ROUND_BITS) | (uint256(_round) << 168);
     }
 
     /// @notice Set the x-coordinate of the fyter.
@@ -307,18 +289,11 @@ library Match {
         hp = (_matchData & HP_BITS) >> 160;
     }
 
-    /// @notice Get the energy of the fyter.
+    /// @notice Get the round of the match.s
     /// @param _matchData The match data.
-    /// @return energy The energy of the fyter.
-    function getEnergy(uint256 _matchData) internal pure returns (uint8 energy) {
-        energy = uint8((_matchData & ENERGY_BITS) >> 168);
-    }
-
-    /// @notice Get the facing direction of the fyter.
-    /// @param _matchData The match data.
-    /// @return facing The facing direction of the fyter (0 for left, 1 for right).
-    function getFacing(uint256 _matchData) internal pure returns (uint8 facing) {
-        facing = uint8((_matchData & FACING_FLAG) >> 174);
+    /// @return round The round of the match.
+    function getRound(uint256 _matchData) internal pure returns (uint8 round) {
+        round = uint8((_matchData & ROUND_BITS) >> 168);
     }
 
     /// @notice Get the x and y coordinates of the fyter.

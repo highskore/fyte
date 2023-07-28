@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+// Types
+
+import { Direction, Action } from "../types/Types.sol";
+
 /// @title The interface for {Fyter}
 
 interface IFyte {
@@ -15,8 +19,8 @@ interface IFyte {
                                ERRORS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice The player is not a valid player for this match.
-    error InvalidPlayer();
+    /// @notice The msg.sender is trying to execute an invalid move for this turn.
+    error InvalidTurn();
 
     /// @notice The commitment does not match the revealed move.
     error InvalidReveal();
@@ -44,17 +48,19 @@ interface IFyte {
     /// @param _commitment The commitment of the move.
     function commitRedMove(uint256 _fyteID, bytes32 _commitment) external;
 
-    /// @notice Reveal a move for the blue player.
-    /// @param _fyteID The ID of the match.
-    /// @param _move The move of the player.
-    /// @param _salt The salt of the commitment.
-    function revealBlueMove(uint256 _fyteID, uint256 _move, bytes32 _salt) external;
-
     /// @notice Reveal a move for the red player.
     /// @param _fyteID The ID of the match.
-    /// @param _move The move of the player.
+    /// @param _direction The direction of the move.
+    /// @param _action The action of the move.
     /// @param _salt The salt of the commitment.
-    function revealRedMove(uint256 _fyteID, uint256 _move, bytes32 _salt) external;
+    function revealRedMove(uint256 _fyteID, Direction _direction, Action _action, bytes32 _salt) external;
+
+    /// @notice Reveal a move for the blue player.
+    /// @param _fyteID The ID of the match.
+    /// @param _direction The direction of the move.
+    /// @param _action The action of the move.
+    /// @param _salt The salt of the commitment.
+    function revealBlueMove(uint256 _fyteID, Direction _direction, Action _action, bytes32 _salt) external;
 
     /*//////////////////////////////////////////////////////////////
                                 PUBLIC

@@ -7,11 +7,15 @@ import { Owned } from "@solmate/auth/Owned.sol";
 
 // Libraries
 
-import { Match } from "../lib/Match.sol";
+import { Match } from "./lib/Match.sol";
 
 // Interfaces
 
-import { IFyte } from "../interfaces/IFyte.sol";
+import { IFyte } from "./interfaces/IFyte.sol";
+
+// Types
+
+import { Direction, Action } from "./types/Types.sol";
 
 //  ..    ,,                        .c,                         .'ckKo..oo.
 // .xKx:'lXX:                ..     '0K:                    .'codkXNk. .dN0c.
@@ -61,10 +65,6 @@ contract Fyte is IFyte, Owned {
     mapping(uint256 fyteID => bytes32 commitment) public blueCommitment;
     mapping(uint256 fyteID => bytes32 commitment) public redCommitment;
 
-    /// @notice revealed moves for each fyter in a match.
-    mapping(uint256 fyteID => uint256 move) public blueRevealedMove;
-    mapping(uint256 fyteID => uint256 move) public redRevealedMove;
-
     /// @notice mapping of fyteID to timestamp of when the match started.
     mapping(uint256 fyteID => uint256 timestamp) public matchStart;
 
@@ -98,10 +98,12 @@ contract Fyte is IFyte, Owned {
     function commitBlueMove(uint256 _fyteID, bytes32 _commitment) external {
         address player = msg.sender;
 
-        // Check if the player is the blue player
-        if (player != address(uint160(blueCorner[_fyteID]))) {
-            revert InvalidPlayer();
+        // Check if it's the blue player's turn to commit and if the message sender is the blue player
+        uint256 bluePlayerData = blueCorner[_fyteID];
+        if (player != address(uint160(bluePlayerData)) || bluePlayerData.getTurn() != 0) {
+            revert InvalidTurn();
         }
+
         // Check if the commitment is empty
         if (blueCommitment[_fyteID] != 0) {
             revert AlreadyCommitted();
@@ -116,10 +118,12 @@ contract Fyte is IFyte, Owned {
     function commitRedMove(uint256 _fyteID, bytes32 _commitment) external {
         address player = msg.sender;
 
-        // Check if the player is the red player
-        if (player != address(uint160(redCorner[_fyteID]))) {
-            revert InvalidPlayer();
+        // Check if it's the red player's turn to commit and if the message sender is the red player
+        uint256 redPlayerData = redCorner[_fyteID];
+        if (player != address(uint160(redPlayerData)) || redPlayerData.getTurn() != 1) {
+            revert InvalidTurn();
         }
+
         // Check if the commitment is empty
         if (redCommitment[_fyteID] != 0) {
             revert AlreadyCommitted();
@@ -131,61 +135,19 @@ contract Fyte is IFyte, Owned {
     }
 
     ///@inheritdoc IFyte
-    function revealBlueMove(uint256 _fyteID, uint256 _move, bytes32 _salt) external {
-        address player = msg.sender;
-
-        // Check if the commitment matches the move
-        if (keccak256(abi.encodePacked(_move, _salt)) != blueCommitment[_fyteID]) {
-            revert InvalidReveal();
-        }
-        // Check if the player is the blue player
-        if (player != address(uint160(blueCorner[_fyteID]))) {
-            revert InvalidPlayer();
-        }
-
-        // Store the move
-        blueRevealedMove[_fyteID] = _move;
-
-        // Check if both moves are revealed
-        if (redRevealedMove[_fyteID] != 0) {
-            // Process the moves
-            _move.playMove(blueCorner[_fyteID], redCorner[_fyteID]);
-            // Clear the moves after processing
-            delete blueRevealedMove[_fyteID];
-            delete redRevealedMove[_fyteID];
-            // Clear the commitments after processing
-            delete blueCommitment[_fyteID];
-            delete redCommitment[_fyteID];
-        }
+    function revealBlueMove(uint256 _fyteID, Direction _direction, Action _action, bytes32 _salt) external {
+        _fyteID;
+        _direction;
+        _action;
+        _salt;
     }
 
     ///@inheritdoc IFyte
-    function revealRedMove(uint256 _fyteID, uint256 _move, bytes32 _salt) external {
-        address player = msg.sender;
-
-        // Check if the commitment matches the move
-        if (keccak256(abi.encodePacked(_move, _salt)) != redCommitment[_fyteID]) {
-            revert InvalidReveal();
-        }
-        // Check if the player is the red player
-        if (player != address(uint160(redCorner[_fyteID]))) {
-            revert InvalidPlayer();
-        }
-
-        // Store the move
-        redRevealedMove[_fyteID] = _move;
-
-        // Check if both moves are revealed
-        if (blueRevealedMove[_fyteID] != 0) {
-            // Process the moves
-            _move.playMove(redCorner[_fyteID], blueCorner[_fyteID]);
-            // Clear the moves after processing
-            delete blueRevealedMove[_fyteID];
-            delete redRevealedMove[_fyteID];
-            // Clear the commitments after processing
-            delete blueCommitment[_fyteID];
-            delete redCommitment[_fyteID];
-        }
+    function revealRedMove(uint256 _fyteID, Direction _direction, Action _action, bytes32 _salt) external {
+        _fyteID;
+        _direction;
+        _action;
+        _salt;
     }
 
     /*//////////////////////////////////////////////////////////////
