@@ -38,10 +38,10 @@ import { Direction, Action } from "../types/Types.sol";
 /// 253: combo flag
 /// ---------------------------
 /// 254-255: turn flag
-/// 0 - me commit,
-/// 1 - opponent commit,
-/// 2 - me reveal,
-/// 3 - opponent reveal
+/// 0 - red commit,
+/// 1 - blue commit,
+/// 2 - red reveal,
+/// 3 - blue reveal
 /// ---------------------------
 
 library Match {
@@ -110,50 +110,24 @@ library Match {
     /// @param _matchData The player's match data.
     /// @return matchData The updated match data.
     function initializeRed(uint256 _matchData) internal pure returns (uint256 matchData) {
-        // Set the player's hp to 31.
-        matchData = _matchData.setHp(31);
-        // Set the player's match round count to 127.
-        matchData = matchData.setRound(127);
-        // Set the player's x-coordinate to 0.
-        matchData = matchData.setX(0);
-        // Set the player's y-coordinate to 0.
-        matchData = matchData.setY(0);
-        // Set the player's direction to neutral.
-        matchData = matchData.setDirection(Direction.NONE);
-        // Set the player's action to idle.
-        matchData = matchData.setAction(Action.NONE);
-        // Set the player's hitbox
+        // TO;DO - Make this a constant
         (uint256 grid,) = Moves.getSpriteGrid(Direction.NONE, Action.NONE);
-        matchData = matchData.setHitbox(grid);
-        // Set the player's combo flag to false.
-        matchData = matchData.setCombo(0);
-        // Set the turn flag to 0.
-        matchData = matchData.setTurn(0);
+        // Set the player's hp to 31.
+        matchData = _matchData.setHp(31).setRound(127).setX(0).setY(0).setDirection(Direction.NONE).setAction(
+            Action.NONE
+        ).setHitbox(grid).setCombo(0).setTurn(0);
     }
 
     /// @notice Initializes the match data for the blue player.
     /// @param _matchData The player's match data.
     /// @return matchData The updated match data.
     function initializeBlue(uint256 _matchData) internal pure returns (uint256 matchData) {
-        // Set the player's hp to 31.
-        matchData = _matchData.setHp(31);
-        // Set the player's match round count to 127..
-        matchData = matchData.setRound(127);
-        // Set the player's x-coordinate to 0.
-        matchData = matchData.setX(31);
-        // Set the player's y-coordinate to 0.
-        matchData = matchData.setY(4);
-        // Set the player's direction to neutral.
-        matchData = matchData.setDirection(Direction.NONE);
-        // Set the player's action to idle.
-        matchData = matchData.setAction(Action.NONE);
-        // Set the player's hitbox
+        // TO;DO - Make this a constant
         (uint256 grid,) = Moves.getSpriteGrid(Direction.NONE, Action.NONE);
-        matchData = matchData.setHitbox(grid);
-        // Set the player's combo flag to false.
-        matchData = matchData.setCombo(0);
-        // Set the turn flag to 3.
-        matchData = matchData.setTurn(1);
+        // Set the player's hp to 31.
+        matchData = _matchData.setHp(31).setRound(127).setX(31).setY(0).setDirection(Direction.NONE).setAction(
+            Action.NONE
+        ).setHitbox(grid).setCombo(0).setTurn(1);
     }
 
     /// @notice Execute a round in a match.
