@@ -136,18 +136,62 @@ contract Fyte is IFyte, Owned {
 
     ///@inheritdoc IFyte
     function revealBlueMove(uint256 _fyteID, Direction _direction, Action _action, bytes32 _salt) external {
-        _fyteID;
-        _direction;
-        _action;
-        _salt;
+        address player = msg.sender;
+
+        // Check if it's the blue player's turn to reveal and if the message sender is the blue player
+        uint256 bluePlayerData = blueCorner[_fyteID];
+        // Check if the round count is even or odd to determine if it's the blue player's turn to reveal
+        uint256 round = bluePlayerData.getRound() % 2;
+        if (
+            player != address(uint160(bluePlayerData)) || (round == 0 && bluePlayerData.getTurn() != 2)
+                || (round == 1 && bluePlayerData.getTurn() != 3)
+        ) {
+            revert InvalidTurn();
+        }
+
+        // Check if the hashed move matches the commitment
+        bytes32 hashedMove = keccak256(abi.encodePacked(_direction, _action, _salt));
+        if (hashedMove != blueCommitment[_fyteID]) {
+            revert InvalidReveal();
+        }
+
+        blueCorner[_fyteID] = bluePlayerData.setDirection(_direction).setAction(_action);
+        if (round == 1) {
+            // Execute the round
+            (blueCorner[_fyteID], redCorner[_fyteID]) = blueCorner[_fyteID].executeRound(redCorner[_fyteID]);
+            delete blueCommitment[_fyteID];
+            delete redCommitment[_fyteID];
+        }
     }
 
     ///@inheritdoc IFyte
     function revealRedMove(uint256 _fyteID, Direction _direction, Action _action, bytes32 _salt) external {
-        _fyteID;
-        _direction;
-        _action;
-        _salt;
+        address player = msg.sender;
+
+        // Check if it's the red player's turn to reveal and if the message sender is the red player
+        uint256 redPlayerData = redCorner[_fyteID];
+        // Check if the round count is even or odd to determine if it's the red player's turn to reveal
+        uint256 round = redPlayerData.getRound() % 2;
+        if (
+            player != address(uint160(redPlayerData)) || (round == 1 && redPlayerData.getTurn() != 2)
+                || (round == 0 && redPlayerData.getTurn() != 3)
+        ) {
+            revert InvalidTurn();
+        }
+
+        // Check if the hashed move matches the commitment
+        bytes32 hashedMove = keccak256(abi.encodePacked(_direction, _action, _salt));
+        if (hashedMove != redCommitment[_fyteID]) {
+            revert InvalidReveal();
+        }
+
+        redCorner[_fyteID] = redPlayerData.setDirection(_direction).setAction(_action);
+        if (round == 0) {
+            // Execute the round
+            (redCorner[_fyteID], blueCorner[_fyteID]) = redCorner[_fyteID].executeRound(blueCorner[_fyteID]);
+            delete blueCommitment[_fyteID];
+            delete redCommitment[_fyteID];
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -168,6 +212,11 @@ contract Fyte is IFyte, Owned {
 
         redData = _red << 160;
         blueData = _blue << 160;
+    }
+
+    ///@inheritdoc IFyte
+    function liquidate(uint256 _fyteID) public {
+        //
     }
 
     /*//////////////////////////////////////////////////////////////

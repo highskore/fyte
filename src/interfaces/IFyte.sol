@@ -77,6 +77,11 @@ interface IFyte {
         view
         returns (address red, address blue, uint256 redData, uint256 blueData);
 
+    /// @notice Liquidate a fyter/match, sending 92.5% of the balance to the winner,
+    /// 5% to the liquidator and 2.5% to the contract owner.
+    /// @param _fyteID The ID of the match.
+    function liquidate(uint256 _fyteID) external;
+
     /*//////////////////////////////////////////////////////////////
                                 INTERNAL
     //////////////////////////////////////////////////////////////*/

@@ -154,12 +154,12 @@ library Match {
         matchData = matchData.setTurn(1);
     }
 
-    /// @notice Play a move in a match.
+    /// @notice Execute a round in a match.
     /// @param _currentFytherMatchData The current figther match data.
     /// @param _opponentFytherMatchData the opponent figther match data.
     /// @return currentFytherMatchData The updated current fighter match data.
     /// @return opponentFytherMatchData The updated opponent fighter match data.
-    function playMove(
+    function executeRound(
         uint256 _currentFytherMatchData,
         uint256 _opponentFytherMatchData
     )
