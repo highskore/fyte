@@ -127,7 +127,7 @@ library Match {
         // Set the player's hp to 31.
         matchData = _matchData.setHp(31).setRound(127).setX(31).setY(0).setDirection(Direction.NONE).setAction(
             Action.NONE
-        ).setHitbox(grid).setCombo(0).setTurn(1);
+        ).setHitbox(grid).setCombo(0).setTurn(0);
     }
 
     /// @notice Execute a round in a match.
@@ -180,8 +180,8 @@ library Match {
     /// @param _matchData The match data.
     /// @param _round The round of the match
     /// @return matchData The updated match data.
-    function setRound(uint256 _matchData, uint8 _round) internal pure returns (uint256 matchData) {
-        matchData = (_matchData & ~ROUND_BITS) | (uint256(_round) << 165);
+    function setRound(uint256 _matchData, uint256 _round) internal pure returns (uint256 matchData) {
+        matchData = (_matchData & ~ROUND_BITS) | (_round << 165);
     }
 
     /// @notice Set the x-coordinate of the fyter.
@@ -254,7 +254,7 @@ library Match {
     /// @notice Get the round of the match.s
     /// @param _matchData The match data.
     /// @return round The round of the match.
-    function getRound(uint256 _matchData) internal pure returns (uint8 round) {
+    function getRound(uint256 _matchData) internal pure returns (uint256 round) {
         round = uint8((_matchData & ROUND_BITS) >> 165);
     }
 

@@ -210,10 +210,14 @@ contract Fyte is IFyte, Owned {
         uint256 _red = redCorner[_fyteID];
         uint256 _blue = blueCorner[_fyteID];
 
+        // Convert the uint256 to an address
         red = address(uint160(_red));
+        // Convert the uint256 to an address
         blue = address(uint160(_blue));
 
+        // Shift the uint256 to the right to remove the address
         redData = _red << 160;
+        // Shift the uint256 to the right to remove the address
         blueData = _blue << 160;
     }
 
