@@ -1,14 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-// Contracts
-
-import { Owned } from "@solmate/auth/Owned.sol";
-
-// Interfaces
-
-import { IFyte } from "../../src/interfaces/IFyte.sol";
-
 // Types
 
 import { Direction, Action } from "../../src/types/Types.sol";
