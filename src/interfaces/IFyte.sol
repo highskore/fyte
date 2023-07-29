@@ -81,10 +81,11 @@ interface IFyte {
     /// @return blue The address of the blue player.
     /// @return redData The data of the red player.
     /// @return blueData The data of the blue player.
-    function getMatch(uint256 _fyteID)
+    /// @return startTime the start time of the match.
+    function getMatchData(uint256 _fyteID)
         external
         view
-        returns (address red, address blue, uint256 redData, uint256 blueData);
+        returns (address red, address blue, uint256 redData, uint256 blueData, uint256 startTime);
 
     /// @notice Liquidate a fyter/match, sending 92.5% of the balance to the winner,
     /// 5% to the liquidator and 2.5% to the contract owner.

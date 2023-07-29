@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 // Std
-import "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 import { StdCheats } from "forge-std/StdCheats.sol";
 
 // Contracts

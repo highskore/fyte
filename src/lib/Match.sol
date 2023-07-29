@@ -37,11 +37,11 @@ import { Direction, Action } from "../types/Types.sol";
 /// ---------------------------
 /// 253: combo flag
 /// ---------------------------
-/// 254-255: turn flag
-/// 0 - red commit,
-/// 1 - blue commit,
-/// 2 - red reveal,
-/// 3 - blue reveal
+/// 254-255: turn flag (TO:DO - change to 1 bit)
+/// 0 - reveal
+/// 1 - commit red
+/// 2 - commit blue
+/// 3 - #
 /// ---------------------------
 
 library Match {

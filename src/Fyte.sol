@@ -83,24 +83,34 @@ contract Fyte is IFyte, Owned {
 
     ///@inheritdoc IFyte
     function createMatch(address _red, address _blue) external override returns (uint256 fyteID) {
+        // Increment the fyte count
+        fyteID = ++fyteCount;
+
         // Initialize the player positions
-        redCorner[fyteCount] = uint256(uint160(_red)).initializeRed();
-        blueCorner[fyteCount] = uint256(uint160(_blue)).initializeBlue();
+        redCorner[fyteID] = uint256(uint160(_red)).initializeRed();
+        blueCorner[fyteID] = uint256(uint160(_blue)).initializeBlue();
 
         // Set the match start timestamp
-        matchStart[fyteCount] = block.timestamp;
+        matchStart[fyteID] = block.timestamp;
+
+        emit MatchCreated(fyteID, _red, _blue);
 
         // Increment the fyte count
-        return ++fyteCount;
+        return fyteID;
     }
 
     ///@inheritdoc IFyte
     function commitBlueMove(uint256 _fyteID, bytes32 _commitment) external {
         address player = msg.sender;
+        uint256 bluePlayerData = blueCorner[_fyteID];
 
         // Check if it's the blue player's turn to commit and if the message sender is the blue player
-        uint256 bluePlayerData = blueCorner[_fyteID];
-        if (player != address(uint160(bluePlayerData)) || bluePlayerData.getTurn() != 0) {
+        if (player != address(uint160(bluePlayerData))) {
+            revert InvalidTurn();
+        }
+
+        // Check if it's the commit turn
+        if (bluePlayerData.getTurn() != 0) {
             revert InvalidTurn();
         }
 
@@ -117,10 +127,15 @@ contract Fyte is IFyte, Owned {
     ///@inheritdoc IFyte
     function commitRedMove(uint256 _fyteID, bytes32 _commitment) external {
         address player = msg.sender;
+        uint256 redPlayerData = redCorner[_fyteID];
 
         // Check if it's the red player's turn to commit and if the message sender is the red player
-        uint256 redPlayerData = redCorner[_fyteID];
-        if (player != address(uint160(redPlayerData)) || redPlayerData.getTurn() != 1) {
+        if (player != address(uint160(redPlayerData))) {
+            revert InvalidTurn();
+        }
+
+        // Check if it's the commit turn
+        if (redPlayerData.getTurn() != 0) {
             revert InvalidTurn();
         }
 
@@ -137,15 +152,18 @@ contract Fyte is IFyte, Owned {
     ///@inheritdoc IFyte
     function revealBlueMove(uint256 _fyteID, Direction _direction, Action _action, bytes32 _salt) external {
         address player = msg.sender;
-
-        // Check if it's the blue player's turn to reveal and if the message sender is the blue player
         uint256 bluePlayerData = blueCorner[_fyteID];
+
         // Check if the round count is even or odd to determine if it's the blue player's turn to reveal
         uint256 round = bluePlayerData.getRound() & 0x1;
-        if (
-            player != address(uint160(bluePlayerData)) || (round == 0 && bluePlayerData.getTurn() != 2)
-                || (round == 1 && bluePlayerData.getTurn() != 3)
-        ) {
+
+        // Check if the round count is even to determine if it's the blue player's turn to reveal
+        if (round == 0 && bluePlayerData.getTurn() != 1) {
+            revert InvalidTurn();
+        }
+
+        // Check if the round count is odd to determine if it's the blue player's turn to reveal
+        if (round == 1 && bluePlayerData.getTurn() != 2) {
             revert InvalidTurn();
         }
 
@@ -155,7 +173,10 @@ contract Fyte is IFyte, Owned {
             revert InvalidReveal();
         }
 
+        // Set the direction and action
         blueCorner[_fyteID] = bluePlayerData.setDirection(_direction).setAction(_action);
+
+        // If the round is odd, execute the round
         if (round == 1) {
             // Execute the round
             (blueCorner[_fyteID], redCorner[_fyteID]) = blueCorner[_fyteID].executeRound(redCorner[_fyteID]);
@@ -163,21 +184,25 @@ contract Fyte is IFyte, Owned {
             delete redCommitment[_fyteID];
         }
 
+        // Emit the event
         emit TurnRevealed(_fyteID, player, _direction, _action);
     }
 
     ///@inheritdoc IFyte
     function revealRedMove(uint256 _fyteID, Direction _direction, Action _action, bytes32 _salt) external {
         address player = msg.sender;
-
-        // Check if it's the red player's turn to reveal and if the message sender is the red player
         uint256 redPlayerData = redCorner[_fyteID];
+
         // Check if the round count is even or odd to determine if it's the red player's turn to reveal
-        uint256 round = redPlayerData.getRound() & 0x01;
-        if (
-            player != address(uint160(redPlayerData)) || (round == 1 && redPlayerData.getTurn() != 2)
-                || (round == 0 && redPlayerData.getTurn() != 3)
-        ) {
+        uint256 round = redPlayerData.getRound() & 0x1;
+
+        // Check if the round count is even to determine if it's the red player's turn to reveal
+        if (round == 1 && redPlayerData.getTurn() != 1) {
+            revert InvalidTurn();
+        }
+
+        // Check if the round count is odd to determine if it's the red player's turn to reveal
+        if (round == 0 && redPlayerData.getTurn() != 2) {
             revert InvalidTurn();
         }
 
@@ -187,13 +212,18 @@ contract Fyte is IFyte, Owned {
             revert InvalidReveal();
         }
 
+        // Set the direction and action
         redCorner[_fyteID] = redPlayerData.setDirection(_direction).setAction(_action);
+
+        // If the round is even, execute the round
         if (round == 0) {
             // Execute the round
             (redCorner[_fyteID], blueCorner[_fyteID]) = redCorner[_fyteID].executeRound(blueCorner[_fyteID]);
             delete blueCommitment[_fyteID];
             delete redCommitment[_fyteID];
         }
+
+        // Emit the event
         emit TurnRevealed(_fyteID, player, _direction, _action);
     }
 
@@ -202,23 +232,24 @@ contract Fyte is IFyte, Owned {
     //////////////////////////////////////////////////////////////*/
 
     ///@inheritdoc IFyte
-    function getMatch(uint256 _fyteID)
+    function getMatchData(uint256 _fyteID)
         public
         view
-        returns (address red, address blue, uint256 redData, uint256 blueData)
+        returns (address red, address blue, uint256 redData, uint256 blueData, uint256 startTime)
     {
+        // Get the addresses of the red and blue players
         uint256 _red = redCorner[_fyteID];
         uint256 _blue = blueCorner[_fyteID];
 
         // Convert the uint256 to an address
         red = address(uint160(_red));
-        // Convert the uint256 to an address
         blue = address(uint160(_blue));
 
-        // Shift the uint256 to the right to remove the address
+        // Shift the uint256 to the right to remove the address and get the match data bits
         redData = _red << 160;
-        // Shift the uint256 to the right to remove the address
         blueData = _blue << 160;
+
+        startTime = matchStart[_fyteID];
     }
 
     ///@inheritdoc IFyte
